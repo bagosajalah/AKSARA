@@ -4,9 +4,9 @@ services:
     container_name: aksara-database
     restart: unless-stopped
     environment:
-      POSTGRES_USER: postgres
-      POSTGRES_PASSWORD: Bagus3663
-      POSTGRES_DB: db_aksara
+      POSTGRES_USER: ${POSTGRES_USER:-postgres}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-postgres}
+      POSTGRES_DB: ${POSTGRES_DB:-db_aksara}
       TZ: Asia/Jakarta
       PGTZ: Asia/Jakarta
     ports:
@@ -14,7 +14,7 @@ services:
     volumes:
       - postgres_data:/var/lib/postgresql/data
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U postgres -d db_aksara"]
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-postgres} -d ${POSTGRES_DB:-db_aksara}"]
       interval: 10s
       timeout: 5s
       retries: 5
@@ -66,6 +66,7 @@ services:
       options:
         max-size: "10m"
         max-file: "3"
+
   backend:
     build:
       context: ../aksara_backend
@@ -73,22 +74,23 @@ services:
     container_name: aksara-backend
     restart: unless-stopped
     environment:
-      - DATABASE_URL=postgresql+asyncpg://postgres:Bagus3663@database:5432/db_aksara
-      
+      - DATABASE_URL=postgresql+asyncpg://${POSTGRES_USER:-postgres}:${POSTGRES_PASSWORD:-postgres}@database:5432/${POSTGRES_DB:-db_aksara}
+
       - REDIS_HOST=redis
       - REDIS_PORT=6379
-      
+
       - CHROMA_HOST=chromadb
       - CHROMA_PORT=8000
-      
+
       - GEMINI_API_KEY=${GEMINI_API_KEY:-}
       - OPENAI_API_KEY=${OPENAI_API_KEY:-}
       - ANTHROPIC_API_KEY=${ANTHROPIC_API_KEY:-}
-      - ACTIVE_PROVIDER=${ACTIVE_PROVIDER:-google_gemini}
-      
-      - ENVIRONMENT=development
-      - DEBUG=True
-      
+      - DEFAULT_LLM_PROVIDER=${DEFAULT_LLM_PROVIDER:-google_gemini}
+      - DEFAULT_LLM_MODEL=${DEFAULT_LLM_MODEL:-gemini-3.6-flash}
+
+      - ENVIRONMENT=${ENVIRONMENT:-development}
+      - DEBUG=${DEBUG:-True}
+
     ports:
       - "8000:8000"
     volumes:
