@@ -1,0 +1,160 @@
+services:
+  database:
+    image: postgres:15-alpine
+    container_name: aksara-database
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: Bagus3663
+      POSTGRES_DB: db_aksara
+      TZ: Asia/Jakarta
+      PGTZ: Asia/Jakarta
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d db_aksara"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - aksara-network
+
+  redis:
+    image: redis:7-alpine
+    container_name: aksara-redis
+    restart: unless-stopped
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    command: redis-server --appendonly yes
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - aksara-network
+
+  chromadb:
+    image: chromadb/chroma:0.5.23
+    container_name: aksara-chromadb
+    restart: unless-stopped
+    ports:
+      - "8001:8000"
+    environment:
+      - IS_PERSISTENT=TRUE
+      - PERSIST_DIRECTORY=/chroma/chroma
+      - ANONYMIZED_TELEMETRY=False
+      - CHROMA_SERVER_AUTH_PROVIDER=chromadb.auth.noop_auth.NoopAuthServerProvider
+      - CHROMA_SERVER_GRPC_MAX_MESSAGE_LENGTH=104857600
+    volumes:
+      - chroma_data:/chroma/chroma
+      - ./chroma_config:/chroma/config
+    healthcheck:
+      test: ["CMD", "python3", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8000/api/v2/heartbeat')"]
+      interval: 30s
+      timeout: 10s
+      retries: 10
+      start_period: 40s
+    networks:
+      - aksara-network
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
+  backend:
+    build:
+      context: ../aksara_backend
+      dockerfile: Dockerfile
+    container_name: aksara-backend
+    restart: unless-stopped
+    environment:
+      - DATABASE_URL=postgresql+asyncpg://postgres:Bagus3663@database:5432/db_aksara
+      
+      - REDIS_HOST=redis
+      - REDIS_PORT=6379
+      
+      - CHROMA_HOST=chromadb
+      - CHROMA_PORT=8000
+      
+      - GEMINI_API_KEY=${GEMINI_API_KEY:-}
+      - OPENAI_API_KEY=${OPENAI_API_KEY:-}
+      - ANTHROPIC_API_KEY=${ANTHROPIC_API_KEY:-}
+      - ACTIVE_PROVIDER=${ACTIVE_PROVIDER:-google_gemini}
+      
+      - ENVIRONMENT=development
+      - DEBUG=True
+      
+    ports:
+      - "8000:8000"
+    volumes:
+      - ../aksara_backend:/app
+      - ./logs:/app/logs
+    depends_on:
+      database:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      chromadb:
+        condition: service_healthy
+    networks:
+      - aksara-network
+
+  frontend:
+    build:
+      context: ../aksara
+      dockerfile: Dockerfile
+    container_name: aksara-frontend
+    restart: unless-stopped
+    ports:
+      - "5173:5173"
+    volumes:
+      - ../aksara:/app
+      - /app/node_modules
+    environment:
+      - VITE_API_URL=http://localhost:8000/api/v1
+      - NODE_ENV=development
+    depends_on:
+      - backend
+    networks:
+      - aksara-network
+
+  nginx:
+    image: nginx:alpine
+    container_name: aksara-nginx
+    restart: unless-stopped
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./nginx/nginx.conf:/etc/nginx/nginx.conf:ro
+      - ./nginx/conf.d:/etc/nginx/conf.d:ro
+      - ./nginx/ssl:/etc/nginx/ssl:ro
+      - ../aksara/dist:/usr/share/nginx/html:ro
+    depends_on:
+      - backend
+      - frontend
+    networks:
+      - aksara-network
+    profiles:
+      - production
+
+volumes:
+  postgres_data:
+    driver: local
+    name: aksara_postgres_data
+  redis_data:
+    driver: local
+    name: aksara_redis_data
+  chroma_data:
+    driver: local
+    name: aksara_chroma_data
+
+networks:
+  aksara-network:
+    driver: bridge
+    name: aksara-network

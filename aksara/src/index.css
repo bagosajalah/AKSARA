@@ -1,0 +1,93 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+@import "tailwindcss";
+
+@custom-variant dark (&:is(.dark *));
+
+@theme {
+  --color-navy-blue: #1e3a8a;
+  --font-sans: 'Inter', ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, "Noto Sans", sans-serif;
+}
+
+@layer base {
+  html, body {
+    @apply bg-gray-50 dark:bg-[#0D0F12] text-gray-900 dark:text-white transition-colors duration-300;
+    font-family: 'Inter', sans-serif;
+    margin: 0;
+  }
+}
+
+/* Sembunyikan scrollbar secara global di seluruh aplikasi */
+* {
+  -ms-overflow-style: none;  /* IE and Edge */
+  scrollbar-width: none;  /* Firefox */
+}
+
+*::-webkit-scrollbar {
+  display: none; /* Chrome, Safari and Opera */
+}
+
+/* React Datepicker Matte Black Theme Overrides */
+.react-datepicker {
+  background-color: #1C1E22 !important;
+  border: 1px solid #2A2D31 !important;
+  color: #fff !important;
+  font-family: 'Inter', sans-serif !important;
+}
+
+.react-datepicker__header {
+  background-color: #121315 !important;
+  border-bottom: 1px solid #2A2D31 !important;
+}
+
+.react-datepicker__current-month,
+.react-datepicker-time__header,
+.react-datepicker-year-header {
+  color: #fff !important;
+  font-weight: 500 !important;
+}
+
+.react-datepicker__day-name {
+  color: #9CA3AF !important;
+}
+
+.react-datepicker__day {
+  color: #D1D5DB !important;
+}
+
+.react-datepicker__day:hover {
+  background-color: #374151 !important;
+  color: #fff !important;
+}
+
+.react-datepicker__day--keyboard-selected,
+.react-datepicker__month-text--keyboard-selected,
+.react-datepicker__quarter-text--keyboard-selected,
+.react-datepicker__year-text--keyboard-selected {
+  background-color: #10B981 !important;
+  color: #fff !important;
+}
+
+.react-datepicker__day--in-range,
+.react-datepicker__day--in-selecting-range {
+  background-color: rgba(16, 185, 129, 0.2) !important;
+  color: #10B981 !important;
+}
+
+.react-datepicker__day--selected,
+.react-datepicker__day--range-start,
+.react-datepicker__day--range-end {
+  background-color: #10B981 !important;
+  color: #fff !important;
+}
+
+.react-datepicker__day--disabled {
+  color: #4B5563 !important;
+}
+
+.react-datepicker__navigation-icon::before {
+  border-color: #9CA3AF !important;
+}
+
+.react-datepicker__navigation:hover *::before {
+  border-color: #fff !important;
+}

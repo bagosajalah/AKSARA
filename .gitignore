@@ -1,0 +1,58 @@
+# Env (JANGAN UPLOAD!)
+.env
+.env.local
+.env.production
+*.env
+
+# Python
+__pycache__/
+*.py[cod]
+venv/
+env/
+.venv/
+.pytest_cache/
+
+# Node.js
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+.pnpm-debug.log*
+dist/
+build/
+.vite/
+*.local
+
+# Docker
+docker-compose.override.yml
+logs/
+
+# ChromaDB
+chroma_config/
+chroma_data/
+
+# Backup
+*.sql
+backup_*.sql
+
+# Database
+postgres_data/
+*.db
+*.sqlite
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*~
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
+
+# Test
+test_*.py
+*_test.py
+coverage/
